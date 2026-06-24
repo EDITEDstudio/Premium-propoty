@@ -113,14 +113,14 @@ export default function BeforeAfterSlider({ isNightMode = false, initialCaseId }
       </div>
 
       {/* Main Study Details Grid - Effect Glassy (30% opacity) */}
-      <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 backdrop-blur-xl border ${
+      <div className={`grid grid-cols-1 2xl:grid-cols-12 gap-8 rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-300 backdrop-blur-xl border ${
         isNightMode
           ? "bg-[#010309]/50 border-white/20 border-t-white/35 border-l-white/30 border-r-white/10 border-b-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),_0_20px_50px_rgba(0,0,0,0.3)] text-white"
           : "bg-white/45 border-white/50 border-t-white/70 border-l-white/60 border-r-slate-300/40 border-b-slate-300/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),_0_20px_50px_rgba(15,23,42,0.06)] text-slate-800"
       }`}>
         
         {/* Left Side: Challenge / Solution Summary */}
-        <div className="lg:col-span-6 space-y-6 flex flex-col justify-between">
+        <div className="2xl:col-span-6 space-y-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
@@ -139,7 +139,7 @@ export default function BeforeAfterSlider({ isNightMode = false, initialCaseId }
             </h4>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Challenge Card */}
             <div className={`rounded-2xl p-4 border flex gap-3 transition-colors duration-300 ${
               isNightMode
@@ -195,7 +195,7 @@ export default function BeforeAfterSlider({ isNightMode = false, initialCaseId }
         </div>
 
         {/* Right Side: Interactive Drag Metric Comparison / Visual Savings Grid */}
-        <div className={`lg:col-span-6 rounded-2xl p-5 flex flex-col justify-between gap-6 transition-all duration-300 backdrop-blur-xl border ${
+        <div className={`2xl:col-span-6 rounded-2xl p-5 flex flex-col justify-between gap-6 transition-all duration-300 backdrop-blur-xl border ${
           isNightMode
             ? "bg-[#010309]/45 border-white/20 border-t-white/35 border-l-white/30 border-r-white/10 border-b-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] text-white"
             : "bg-white/45 border-white/50 border-t-white/70 border-l-white/60 border-r-slate-300/40 border-b-slate-300/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),_0_20px_50px_rgba(15,23,42,0.06)] text-slate-800"
