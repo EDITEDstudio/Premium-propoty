@@ -1435,7 +1435,7 @@ export default function App() {
           {/* ==========================================
               RIGHT PANEL: 4 Columns (Listing Board)
               ========================================== */}
-          <div className={`lg:col-span-4 border-l p-4 sm:p-5 rounded-2xl flex flex-col gap-5 max-h-[1400px] transition-all duration-300 ${
+          <div className={`lg:col-span-4 border-l p-4 sm:p-4 rounded-2xl flex flex-col gap-3.5 max-h-[1400px] transition-all duration-300 self-start ${
             isNightMode ? "border-blue-900/20 bg-[#050a14]/30" : "border-white/50 bg-white/20"
           }`}>
             <div className="flex flex-col gap-2 border-b border-slate-100 dark:border-slate-850 pb-3">
@@ -1463,7 +1463,7 @@ export default function App() {
             </div>
 
             {/* List of scrollable project cards */}
-            <div className="space-y-4 overflow-y-auto max-h-[850px] pr-1 scrollbar-thin flex-1">
+            <div className="space-y-2 overflow-y-auto max-h-[850px] pr-1 scrollbar-thin flex-1">
               {filteredPortfolioItems.slice((portfolioPage - 1) * 6, portfolioPage * 6).length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-450 font-sans">
                   ไม่พบรายการผลงานสะสมที่สืบค้น...
@@ -1473,13 +1473,13 @@ export default function App() {
                   <div 
                     key={item.id}
                     onClick={() => setSelectedPortfolioItem(item)}
-                    className={`p-3 rounded-2xl border transition-all duration-300 hover:shadow-md cursor-pointer flex gap-3 text-left ${
+                    className={`p-2.5 rounded-2xl border transition-all duration-300 hover:shadow-md cursor-pointer flex gap-2.5 text-left ${
                       isNightMode 
                         ? "bg-[#091224]/80 border-blue-900/40 hover:bg-[#0c1933] text-white" 
                         : "bg-white border-slate-100 hover:bg-slate-50 text-slate-800"
                     }`}
                   >
-                    <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-slate-900">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-900">
                       <img 
                         src={item.image} 
                         alt={item.title} 
