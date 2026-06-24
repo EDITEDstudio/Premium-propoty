@@ -903,17 +903,36 @@ export default function App() {
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#060c18]" />
               </button>
 
-              {/* Profile Card */}
-              <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-850">
-                <div className="w-8 h-8 rounded-full bg-blue-600 dark:bg-sky-500 flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm font-sans">
-                  SA
+              {/* Profile Card / Admin Auth */}
+              {isAdminLoggedIn ? (
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-850">
+                    <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm font-sans">
+                      AD
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">Sabi Administrator</span>
+                      <span className="text-[9px] text-slate-400 leading-none">sabi2544mc1@gmail.com</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsAdminLoggedIn(false);
+                      localStorage.removeItem("premium_admin_logged_in");
+                    }}
+                    className="p-1.5 px-3 rounded-lg bg-red-500/15 text-red-500 hover:bg-red-500/25 text-[10px] font-bold transition-all cursor-pointer border border-red-500/20"
+                  >
+                    ออกจากระบบ
+                  </button>
                 </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">Sabi Administrator</span>
-                  <span className="text-[9px] text-slate-400 leading-none">sabi2544mc1@gmail.com</span>
-                </div>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
-              </div>
+              ) : (
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 text-white dark:bg-sky-500 dark:text-[#0b1325] hover:opacity-90 text-[10px] sm:text-xs font-bold font-sans cursor-pointer transition-all shadow-sm active:scale-95 border-0"
+                >
+                  <span>🔐 เข้าสู่ระบบแอดมิน</span>
+                </button>
+              )}
               
               {/* Mobile Menu Toggle Button */}
               <button 
