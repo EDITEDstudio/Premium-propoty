@@ -1,0 +1,6 @@
+{
+  "name": "Premium Propoty",
+  "description": "Premium modern enterprise property management landing page with interactive dashboards, ISO 9001:2015 PDCA models, before/after comparisons, and animated metrics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
