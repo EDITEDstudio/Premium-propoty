@@ -49,7 +49,7 @@ import ContactModal from "./components/ContactModal";
 import ScrollReveal, { ScrollGrid } from "./components/ScrollReveal";
 import PoolWaterMonitor from "./components/PoolWaterMonitor";
 import PrimeCareBrandShowcase from "./components/PrimeCareBrandShowcase";
-import { portfolioItems } from "./portfolioData";
+import { portfolioItems, PortfolioItem } from "./portfolioData";
 
 // Dataset ของทีมผู้จัดการและผู้สอบบัญชีที่ได้รับตรารับรองคุณวุฒิวิชาชีพ (นิติ, ช่าง, รปภ, แม่บ้าน, คนสวน)
 const teamMembers = [
@@ -108,6 +108,68 @@ export default function App() {
   const [portfolioPage, setPortfolioPage] = useState(1);
   const itemsPerPage = 6;
 
+  const [portfolioItemsState, setPortfolioItemsState] = useState<{
+    estate: PortfolioItem[];
+    condo: PortfolioItem[];
+    office: PortfolioItem[];
+  }>(() => {
+    const saved = localStorage.getItem("premium_portfolio_data");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return portfolioItems;
+  });
+
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
+    return localStorage.getItem("premium_admin_logged_in") === "true";
+  });
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
+
+  const handleDeleteProject = (id: string) => {
+    if (!window.confirm("คุณต้องการลบโครงการนี้ออกอย่างถาวรใช่หรือไม่?")) return;
+    const updated = {
+      estate: portfolioItemsState.estate.filter(item => item.id !== id),
+      condo: portfolioItemsState.condo.filter(item => item.id !== id),
+      office: portfolioItemsState.office.filter(item => item.id !== id)
+    };
+    setPortfolioItemsState(updated);
+    localStorage.setItem("premium_portfolio_data", JSON.stringify(updated));
+  };
+
+  const handleAddProject = (newProj: {
+    title: string;
+    category: "estate" | "condo" | "office";
+    description: string;
+    stats: string;
+    tag: string;
+    detail: string;
+    image: string;
+  }) => {
+    const newItem: PortfolioItem = {
+      id: `${newProj.category}-${Date.now()}`,
+      title: newProj.title,
+      description: newProj.description,
+      image: newProj.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+      stats: newProj.stats || "สำเร็จตามมาตรฐาน",
+      tag: newProj.tag || "งานบริหารจัดการ",
+      detail: newProj.detail || "ดำเนินการตามมาตรฐานระบบบำรุงรักษาเชิงรุก"
+    };
+
+    const updated = {
+      ...portfolioItemsState,
+      [newProj.category]: [newItem, ...portfolioItemsState[newProj.category]]
+    };
+
+    setPortfolioItemsState(updated);
+    localStorage.setItem("premium_portfolio_data", JSON.stringify(updated));
+  };
+
   // New Dashboard States
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState<any>(null);
   const [activeChatPartner, setActiveChatPartner] = useState<"kianna" | "jaydon" | "mira">("kianna");
@@ -130,7 +192,7 @@ export default function App() {
     setPortfolioPage(1);
   }, [activePortfolioType, portfolioSearch]);
 
-  const filteredPortfolioItems = portfolioItems[activePortfolioType].filter(item => {
+  const filteredPortfolioItems = portfolioItemsState[activePortfolioType].filter(item => {
     if (!portfolioSearch) return true;
     const kw = portfolioSearch.toLowerCase();
     return (
@@ -273,6 +335,311 @@ export default function App() {
       }));
       setIsChatTyping(false);
     }, 1200);
+  };
+
+  const AdminLoginModal = () => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+
+    const handleLoginSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (username === "admin" && password === "admin") {
+        setIsAdminLoggedIn(true);
+        localStorage.setItem("premium_admin_logged_in", "true");
+        setIsLoginModalOpen(false);
+        setError("");
+        setUsername("");
+        setPassword("");
+      } else {
+        setError("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      }
+    };
+
+    if (!isLoginModalOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className={`relative max-w-md w-full rounded-2xl border shadow-2xl p-6 transition-all ${
+          isNightMode ? "bg-[#0b1325] border-blue-900/50 text-slate-100" : "bg-white border-slate-200 text-slate-800"
+        }`}>
+          <button 
+            type="button"
+            onClick={() => setIsLoginModalOpen(false)}
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 bg-blue-600/10 text-blue-600 dark:bg-sky-500/10 dark:text-sky-400 rounded-full flex items-center justify-center mx-auto text-xl">
+              🔐
+            </div>
+            <h3 className="text-lg font-bold font-sans">เข้าสู่ระบบแอดมิน</h3>
+            <p className="text-xs text-slate-400 font-sans">กรอกข้อมูลบัญชีเพื่อสิทธิ์การเพิ่มหรือลบโครงการในระบบ</p>
+          </div>
+
+          <form onSubmit={handleLoginSubmit} className="space-y-4 mt-6">
+            <div className="text-left">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">ชื่อผู้ใช้งาน</label>
+              <input 
+                type="text" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-1 focus:outline-none ${
+                  isNightMode 
+                    ? "bg-slate-950 border-blue-900/40 text-slate-100 focus:border-amber-500 focus:ring-amber-500" 
+                    : "bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                }`}
+              />
+            </div>
+
+            <div className="text-left">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">รหัสผ่าน</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className={`w-full px-3 py-2 text-sm rounded-lg border focus:ring-1 focus:outline-none ${
+                  isNightMode 
+                    ? "bg-slate-950 border-blue-900/40 text-slate-100 focus:border-amber-500 focus:ring-amber-500" 
+                    : "bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                }`}
+              />
+            </div>
+
+            {error && (
+              <p className="text-xs text-red-500 font-bold font-sans text-left">{error}</p>
+            )}
+
+            <button 
+              type="submit"
+              className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white dark:text-[#0b1325] font-bold text-sm cursor-pointer transition-all shadow-md active:scale-95 border-0"
+            >
+              ยืนยันการเข้าสู่ระบบ
+            </button>
+
+            <p className="text-[10px] text-center text-slate-400 font-sans mt-2">
+              (บัญชีทดสอบ: admin / admin)
+            </p>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const AddProjectModal = () => {
+    const [title, setTitle] = useState("");
+    const [category, setCategory] = useState<"estate" | "condo" | "office">("estate");
+    const [description, setDescription] = useState("");
+    const [stats, setStats] = useState("");
+    const [tag, setTag] = useState("");
+    const [detail, setDetail] = useState("");
+    const [image, setImage] = useState("");
+    const [imagePreview, setImagePreview] = useState("");
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result as string;
+          setImage(base64String);
+          setImagePreview(base64String);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!title || !description || !image) {
+        alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน รวมถึงแนบรูปภาพโครงการ");
+        return;
+      }
+
+      handleAddProject({
+        title,
+        category,
+        description,
+        stats,
+        tag,
+        detail,
+        image
+      });
+
+      // Reset
+      setTitle("");
+      setCategory("estate");
+      setDescription("");
+      setStats("");
+      setTag("");
+      setDetail("");
+      setImage("");
+      setImagePreview("");
+      setIsAddProjectModalOpen(false);
+    };
+
+    if (!isAddProjectModalOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+        <div className={`relative max-w-lg w-full rounded-2xl border shadow-2xl p-6 my-8 transition-all max-h-[90vh] overflow-y-auto ${
+          isNightMode ? "bg-[#0b1325] border-blue-900/50 text-slate-100" : "bg-white border-slate-200 text-slate-800"
+        }`}>
+          <button 
+            type="button"
+            onClick={() => setIsAddProjectModalOpen(false)}
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="text-center space-y-2 mb-6">
+            <h3 className="text-lg font-bold font-sans">เพิ่มโครงการใหม่เข้าระบบ</h3>
+            <p className="text-xs text-slate-400 font-sans">กรอกรายละเอียดเพื่อจัดส่งขึ้นบอร์ดบริหารโครงการแบบทันที</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="text-left">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">ชื่อโครงการ *</label>
+              <input 
+                type="text" 
+                value={title} 
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="เช่น Nirvana Forest Haven (เนอวานา ฟอเรสต์)"
+                required
+                className={`w-full px-3 py-2 text-xs rounded-lg border focus:ring-1 focus:outline-none ${
+                  isNightMode 
+                    ? "bg-slate-950 border-blue-900/40 text-slate-100 focus:border-amber-500 focus:ring-amber-500" 
+                    : "bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                }`}
+              />
+            </div>
+
+            <div className="text-left">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">ประเภทโครงการ *</label>
+              <select 
+                value={category} 
+                onChange={(e) => setCategory(e.target.value as any)}
+                className={`w-full px-3 py-2 text-xs rounded-lg border focus:ring-1 focus:outline-none ${
+                  isNightMode 
+                    ? "bg-slate-950 border-blue-900/40 text-slate-100 focus:border-amber-500 focus:ring-amber-500" 
+                    : "bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                }`}
+              >
+                <option value="estate">หมู่บ้านจัดสรร (Housing Estate)</option>
+                <option value="condo">อาคารชุด (Condominium)</option>
+                <option value="office">อาคารสำนักงาน / พลาซ่า (Office Plaza)</option>
+              </select>
+            </div>
+
+            <div className="text-left">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">คำอธิบายโครงการ *</label>
+              <textarea 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="เช่น การบริหารระบบไฟฟ้าประหยัดไฟ 25% ตรวจสอบไฟรั่วสะสม..."
+                required
+                rows={3}
+                className={`w-full px-3 py-2 text-xs rounded-lg border focus:ring-1 focus:outline-none ${
+                  isNightMode 
+                    ? "bg-slate-950 border-blue-900/40 text-slate-100 focus:border-amber-500 focus:ring-amber-500" 
+                    : "bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                }`}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-left">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">สถิติ/ผลลัพธ์</label>
+                <input 
+                  type="text" 
+                  value={stats} 
+                  onChange={(e) => setStats(e.target.value)}
+                  placeholder="เช่น ลดค่าน้ำยา 15%"
+                  className={`w-full px-3 py-2 text-xs rounded-lg border focus:ring-1 focus:outline-none ${
+                    isNightMode 
+                      ? "bg-slate-950 border-blue-900/40 text-slate-100 focus:border-amber-500 focus:ring-amber-500" 
+                      : "bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                  }`}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">ป้ายกำกับ (Tag)</label>
+                <input 
+                  type="text" 
+                  value={tag} 
+                  onChange={(e) => setTag(e.target.value)}
+                  placeholder="เช่น ควบคุมคุณภาพน้ำ"
+                  className={`w-full px-3 py-2 text-xs rounded-lg border focus:ring-1 focus:outline-none ${
+                    isNightMode 
+                      ? "bg-slate-950 border-blue-900/40 text-slate-100 focus:border-amber-500 focus:ring-amber-500" 
+                      : "bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                  }`}
+                />
+              </div>
+            </div>
+
+            <div className="text-left">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">รายละเอียดงานจริง</label>
+              <textarea 
+                value={detail} 
+                onChange={(e) => setDetail(e.target.value)}
+                placeholder="เช่น การใช้พารามิเตอร์ตรวจจับการหมุนเวียนและการบำบัดธรรมชาติ..."
+                rows={3}
+                className={`w-full px-3 py-2 text-xs rounded-lg border focus:ring-1 focus:outline-none ${
+                  isNightMode 
+                    ? "bg-slate-950 border-blue-900/40 text-slate-100 focus:border-amber-500 focus:ring-amber-500" 
+                    : "bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                }`}
+              />
+            </div>
+
+            <div className="text-left">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 font-sans">อัปโหลดภาพโครงการ *</label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={handleImageChange}
+                required
+                className={`w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white dark:file:bg-sky-500 dark:file:text-[#0b1325] hover:file:opacity-90 file:cursor-pointer`}
+              />
+              {imagePreview && (
+                <div className="mt-4 aspect-video w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-800 relative">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button"
+                    onClick={() => { setImage(""); setImagePreview(""); }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 text-[10px]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 flex justify-end gap-3 text-xs">
+              <button 
+                type="button"
+                onClick={() => setIsAddProjectModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-850 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-bold cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button 
+                type="submit"
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white dark:text-[#0b1325] font-bold rounded-xl transition-all shadow-md active:scale-95 cursor-pointer border-0"
+              >
+                บันทึกโครงการ
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -422,11 +789,7 @@ export default function App() {
               <div className="absolute inset-0 bg-gradient-to-t from-[#020512]/90 via-[#030d24]/65 to-[#020512]/95" />
             </>
           )}
-
-          {/* Subtle light accent overlay */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.1),transparent_50%)] pointer-events-none" />
-          
-          {/* Cosmic Blue Circular Gradients for extra depth */}
+{/* Cosmic Blue Circular Gradients for extra depth */}
           <div 
             className="absolute bottom-[-20%] right-[-20%] w-[65vw] h-[65vw] max-w-[800px] max-h-[800px] rounded-full bg-blue-600/12 blur-[140px] pointer-events-none mix-blend-screen transition-all duration-1000"
             style={{ 
@@ -1033,6 +1396,21 @@ export default function App() {
               </div>
             </div>
 
+            {/* Row 7: Standalone Before/After Renovation Slider */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              isNightMode ? "bg-[#091224]/80 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"
+            }`}>
+              <div className="border-b border-slate-100 dark:border-slate-850 pb-3 mb-4 text-left">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
+                  Case Studies Renovation
+                </span>
+                <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
+                  เปรียบเทียบก่อน-หลัง การปรับปรุงโครงสร้าง (Renovation Before/After)
+                </h3>
+              </div>
+              <BeforeAfterSlider isNightMode={isNightMode} />
+            </div>
+
           </div>
 
           {/* ==========================================
@@ -1041,18 +1419,28 @@ export default function App() {
           <div className={`lg:col-span-4 border-l p-4 sm:p-5 rounded-2xl flex flex-col gap-5 max-h-[1400px] transition-all duration-300 ${
             isNightMode ? "border-blue-900/20 bg-[#050a14]/30" : "border-white/50 bg-white/20"
           }`}>
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-850 pb-3">
-              <div className="space-y-0.5 text-left">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
-                  Listing Board
+            <div className="flex flex-col gap-2 border-b border-slate-100 dark:border-slate-850 pb-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5 text-left">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
+                    Listing Board
+                  </span>
+                  <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
+                    พอร์ตโครงการบริหาร
+                  </h3>
+                </div>
+                <span className="text-[9px] font-bold bg-blue-600/10 text-blue-600 dark:text-sky-400 px-2 py-0.5 rounded font-mono flex-shrink-0">
+                  พบ {filteredPortfolioItems.length} แห่ง
                 </span>
-                <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
-                  พอร์ตโครงการบริหาร
-                </h3>
               </div>
-              <span className="text-[9px] font-bold bg-blue-600/10 text-blue-600 dark:text-sky-400 px-2 py-0.5 rounded font-mono flex-shrink-0">
-                พบ {filteredPortfolioItems.length} แห่ง
-              </span>
+              {isAdminLoggedIn && (
+                <button 
+                  onClick={() => setIsAddProjectModalOpen(true)}
+                  className="mt-1 w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-sans text-xs font-bold rounded-lg cursor-pointer transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5 border-0"
+                >
+                  <span>➕ เพิ่มโครงการใหม่</span>
+                </button>
+              )}
             </div>
 
             {/* List of scrollable project cards */}
@@ -1086,9 +1474,23 @@ export default function App() {
                           <span className="text-[8px] font-bold uppercase tracking-wider text-blue-600 dark:text-sky-400 font-sans truncate">
                             {item.tag}
                           </span>
-                          <span className="text-[8px] font-bold bg-[#D4A017]/10 text-[#D4A017] px-1.5 py-0.2 rounded font-mono flex-shrink-0">
-                            {item.stats}
-                          </span>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <span className="text-[8px] font-bold bg-[#D4A017]/10 text-[#D4A017] px-1.5 py-0.5 rounded font-mono">
+                              {item.stats}
+                            </span>
+                            {isAdminLoggedIn && (
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteProject(item.id);
+                                }}
+                                className="p-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/25 transition-all cursor-pointer border border-red-500/20"
+                                title="ลบโครงการ"
+                              >
+                                <X className="w-2.5 h-2.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <h4 className="text-xs font-bold leading-tight font-sans truncate text-slate-900 dark:text-white">
                           {item.title}
@@ -1715,15 +2117,25 @@ export default function App() {
               <div>
                 <h2 className={`text-2xl font-extrabold font-sans flex items-center gap-2 ${isNightMode ? "text-white" : "text-[#0F2B46]"}`}>
                   <span className="w-1.5 h-6 bg-[#D4A017] rounded-full inline-block"></span>
-                  <span>ตัวอย่างโครงการและรายละเอียดงานจริงทั้งหมด ({portfolioItems[activePortfolioType].length} โครงการ)</span>
+                  <span>ตัวอย่างโครงการและรายละเอียดงานจริงทั้งหมด ({portfolioItemsState[activePortfolioType].length} โครงการ)</span>
                 </h2>
                 <p className="text-xs text-slate-450 mt-1 font-sans">
                   แสดงรายละเอียดและผลลัพธ์คัดกรอง OpEx สแกนท่อรั่วซึม บำรุงระบบส่วนกลาง และประสิทธิภาพการใช้ปั๊มน้ำสอดคล้องมาตรฐานเกณฑ์สากล ISO 9001
                 </p>
               </div>
-              <span className="text-[10px] font-mono bg-[#D4A017]/15 text-[#D4A017] uppercase tracking-wider px-2 py-1 rounded mt-2 md:mt-0 font-extrabold self-start md:self-auto border border-[#D4A017]/30">
-                {filteredPortfolioItems.length} PROJECTS IN {activePortfolioType === "estate" ? "HOUSING" : activePortfolioType === "condo" ? "CONDOMINIUM" : "OFFICE PLAZA"}
-              </span>
+              <div className="flex items-center gap-3 mt-4 md:mt-0">
+                {isAdminLoggedIn && (
+                  <button 
+                    onClick={() => setIsAddProjectModalOpen(true)}
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-sans text-xs font-bold rounded-lg cursor-pointer transition-all shadow-md active:scale-95 border-0"
+                  >
+                    ➕ เพิ่มโครงการใหม่
+                  </button>
+                )}
+                <span className="text-[10px] font-mono bg-[#D4A017]/15 text-[#D4A017] uppercase tracking-wider px-2 py-1 rounded font-extrabold border border-[#D4A017]/30">
+                  {filteredPortfolioItems.length} PROJECTS IN {activePortfolioType === "estate" ? "HOUSING" : activePortfolioType === "condo" ? "CONDOMINIUM" : "OFFICE PLAZA"}
+                </span>
+              </div>
             </div>
 
             {/* Search Filter and Quick Stats Bar */}
@@ -1758,7 +2170,7 @@ export default function App() {
               </div>
               <div className="flex items-center gap-3 text-xs">
                 <span className={isNightMode ? "text-slate-400" : "text-slate-600"}>
-                  พบ <strong>{filteredPortfolioItems.length}</strong> จาก <strong>{portfolioItems[activePortfolioType].length}</strong> โครงการ 
+                  พบ <strong>{filteredPortfolioItems.length}</strong> จาก <strong>{portfolioItemsState[activePortfolioType].length}</strong> โครงการ 
                 </span>
                 {portfolioSearch && (
                   <span className="px-2 py-0.5 bg-[#D4A017]/10 text-[#D4A017] border border-[#D4A017]/30 text-[10px] rounded font-semibold font-sans">
@@ -1784,11 +2196,14 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {displayedPortfolioItems.map((item, idx) => (
                   <ScrollReveal key={item.id} direction="up" delay={(idx % 6) * 0.05} duration={0.5}>
-                    <div className={`group rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1.5 flex flex-col h-full backdrop-blur-xl border ${
-                      isNightMode 
-                        ? "bg-[#09152B]/40 border-white/20 border-t-white/35 border-l-white/30 border-r-white/10 border-b-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),_0_20px_50px_rgba(0,0,0,0.3)] text-slate-100" 
-                        : "bg-white/45 border-white/50 border-t-white/70 border-l-white/60 border-r-slate-300/40 border-b-slate-300/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),_0_20px_50px_rgba(15,23,42,0.06)] text-slate-800"
-                    }`}>
+                    <div 
+                      onClick={() => setSelectedPortfolioItem(item)}
+                      className={`group rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1.5 flex flex-col h-full backdrop-blur-xl border cursor-pointer ${
+                        isNightMode 
+                          ? "bg-[#09152B]/40 border-white/20 border-t-white/35 border-l-white/30 border-r-white/10 border-b-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),_0_20px_50px_rgba(0,0,0,0.3)] text-slate-100" 
+                          : "bg-white/45 border-white/50 border-t-white/70 border-l-white/60 border-r-slate-300/40 border-b-slate-300/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),_0_20px_50px_rgba(15,23,42,0.06)] text-slate-800"
+                      }`}
+                    >
                       {/* Visual Area */}
                       <div className="relative h-56 overflow-hidden bg-slate-950">
                         <img 
@@ -1803,6 +2218,19 @@ export default function App() {
                         <span className="absolute top-4 left-4 text-[10px] font-bold font-mono tracking-widest bg-emerald-600 text-white py-1 px-2.5 rounded shadow-md uppercase">
                           {item.tag}
                         </span>
+
+                        {isAdminLoggedIn && (
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProject(item.id);
+                            }}
+                            className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-lg shadow-md cursor-pointer transition-all border border-red-500 z-10"
+                            title="ลบโครงการ"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
 
                         {/* Stat bubble */}
                         <div className="absolute bottom-4 right-4 bg-[#0F2B46] border border-[#D4A017] shadow-xl text-[#D4A017] text-[11px] font-bold px-2.5 py-1 rounded-lg">
@@ -1895,19 +2323,7 @@ export default function App() {
             )}
           </div>
 
-          {/* Dynamic BeforeAfterSlider synced to selection */}
-          <div className="pt-4">
-            <BeforeAfterSlider 
-              isNightMode={isNightMode} 
-              initialCaseId={
-                activePortfolioType === "estate" 
-                  ? "CS-02" 
-                  : activePortfolioType === "condo" 
-                    ? "CS-01" 
-                    : "CS-03"
-              }
-            />
-          </div>
+
         </div>
       )}
 
@@ -2059,37 +2475,13 @@ export default function App() {
                   </div>
 
                   {/* Right Column: Embedded Simulators (7 columns) */}
-                  <div className="lg:col-span-7 space-y-4">
-                    <div className="bg-slate-100 dark:bg-slate-850 p-1 rounded-xl flex gap-1 text-[10px] font-bold font-sans border border-slate-200/20">
-                      <button 
-                        onClick={() => setActiveSimTab("renovation")}
-                        className={`flex-1 py-2 rounded-lg cursor-pointer transition-all ${activeSimTab === "renovation" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-sky-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`}
-                      >
-                        เปรียบเทียบก่อน-หลัง (Renovation)
-                      </button>
-                      <button 
-                        onClick={() => setActiveSimTab("iot")}
-                        className={`flex-1 py-2 rounded-lg cursor-pointer transition-all ${activeSimTab === "iot" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-sky-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`}
-                      >
-                        IoT คุณภาพน้ำสระ (Pool Monitor)
-                      </button>
-                    </div>
-
-                    <div className="p-1.5 rounded-2xl border border-slate-100 dark:border-slate-855 bg-slate-50/20 dark:bg-[#03070f]/20">
-                      {activeSimTab === "renovation" ? (
-                        <BeforeAfterSlider 
-                          isNightMode={isNightMode} 
-                          initialCaseId={
-                            selectedPortfolioItem.id.includes("condo") 
-                              ? "CS-01" 
-                              : selectedPortfolioItem.id.includes("office") 
-                                ? "CS-03" 
-                                : "CS-02"
-                          }
-                        />
-                      ) : (
-                        <PoolWaterMonitor isNightMode={isNightMode} />
-                      )}
+                  <div className="lg:col-span-7 space-y-4 text-left">
+                    <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-slate-200 mb-3 font-sans flex items-center gap-1.5">
+                        <span className="w-1.5 h-3.5 bg-blue-600 dark:bg-sky-400 rounded-full inline-block"></span>
+                        <span>ระบบจำลองการตรวจวัดวิเคราะห์ค่าน้ำส่วนกลาง (IoT Pool Monitor)</span>
+                      </h4>
+                      <PoolWaterMonitor isNightMode={isNightMode} />
                     </div>
                   </div>
 
@@ -2126,6 +2518,10 @@ export default function App() {
         isOpen={isContactOpen} 
         onClose={() => setIsContactOpen(false)} 
       />
+
+      {/* ADMIN PORTAL & LOGISTICS MODALS */}
+      <AdminLoginModal />
+      <AddProjectModal />
 
     </div>
   );
