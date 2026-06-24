@@ -18,7 +18,7 @@ const pdcaSteps: PDCAStep[] = [
     phase: "PLAN",
     title: "1. การวางแผนและจัดการงบประมาณเชิงกลยุทธ์",
     subtitle: "กำหนดเป้าหมายค่าใช้จ่ายของโครงสร้างและเกณฑ์มาตรฐานคุณภาพ ISO",
-    color: "from-blue-600 to-sky-500",
+    color: "from-blue-700 to-blue-500",
     icon: "Compass",
     details: [
       "การตรวจสอบประเมินข้อมูลค่าใช้จ่ายพื้นฐานของอาคารจริงอย่างละเอียด",
@@ -32,7 +32,7 @@ const pdcaSteps: PDCAStep[] = [
     phase: "DO",
     title: "2. การปฏิบัติงานเชิงกลยุทธ์",
     subtitle: "การจัดตั้งทีมงานประสิทธิภาพสูงและนำเทคโนโลยีการบริหารอาคารมาปรับใช้",
-    color: "from-emerald-600 to-teal-500",
+    color: "from-indigo-600 to-sky-500",
     icon: "Settings",
     details: [
       "จัดตั้งทีมบริหารจัดการอสังหาริมทรัพย์ที่มีวินัยและผ่านการรับรอง",
@@ -46,12 +46,12 @@ const pdcaSteps: PDCAStep[] = [
     phase: "CHECK",
     title: "3. การตรวจสอบอย่างเข้มงวดและต่อเนื่อง",
     subtitle: "การตรวจสอบต้นทุนแบบเรียลไทม์และการปฏิบัติตามมาตรฐานความโปร่งใสขั้นสูงสุด",
-    color: "from-amber-500 to-yellow-400",
+    color: "from-sky-500 to-cyan-400",
     icon: "Search",
     details: [
       "การตรวจสอบบัญชีและการเงินอิสระโดยผู้จัดการฝ่ายตรวจสอบที่ได้รับการรับรอง",
       "การตรวจสอบความสมบูรณ์ทางเทคนิคของอาคารและวิเคราะห์ความเสี่ยงอย่างสม่ำเสมอ",
-      "การประเมินความพึงพอใจของผู้อยู่อาศัยและตัวชี้วัดความสุขทุกครึ่งปี",
+      "การประเมินความพึงพอใจของผูอยู่อาศัยและตัวชี้วัดความสุขทุกครึ่งปี",
       "การประเมินตัวชี้วัดประสิทธิภาพและคุณภาพงานของผู้รับเหมารายย่อย"
     ],
     isoStandard: "ISO 9001:2015 Clause 9 (Performance Evaluation)"
@@ -60,7 +60,7 @@ const pdcaSteps: PDCAStep[] = [
     phase: "ACT",
     title: "4. การปรับปรุงคุณภาพอย่างสม่ำเสมอ",
     subtitle: "การปรับปรุงการจัดสรรทรัพยากรและวงจรผลตอบรับเพื่อสร้างการประหยัดอย่างเป็นระบบ",
-    color: "from-[#F1595C] to-pink-500",
+    color: "from-blue-600 to-indigo-500",
     icon: "TrendingUp",
     details: [
       "การแก้ไขความคลาดเคลื่อนด้านคุณภาพในระดับรองอย่างเป็นระบบทันที",
@@ -80,9 +80,9 @@ export default function PDCAInteractive({ isNightMode = false }: { isNightMode?:
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case "Compass": return <Compass className="w-8 h-8 text-sky-400" />;
-      case "Settings": return <Settings className="w-8 h-8 text-emerald-400" />;
-      case "Search": return <Search className="w-8 h-8 text-amber-400" />;
-      case "TrendingUp": return <TrendingUp className="w-8 h-8 text-rose-400" />;
+      case "Settings": return <Settings className="w-8 h-8 text-indigo-400" />;
+      case "Search": return <Search className="w-8 h-8 text-cyan-400" />;
+      case "TrendingUp": return <TrendingUp className="w-8 h-8 text-blue-400" />;
       default: return <Compass className="w-8 h-8" />;
     }
   };
@@ -104,7 +104,7 @@ export default function PDCAInteractive({ isNightMode = false }: { isNightMode?:
             
             {/* Center Core Logo/ISO indicator */}
             <div className="absolute w-24 h-24 md:w-32 md:h-32 rounded-full bg-[#0A1224] border-2 border-blue-900/60 flex flex-col justify-center items-center text-center shadow-xl z-20">
-              <span className="text-[10px] font-mono tracking-wider text-[#D4A017] uppercase">ระบบวงรอบคุณภาพ</span>
+              <span className={`text-[10px] font-mono tracking-wider uppercase ${isNightMode ? "text-[#38bdf8]" : "text-[#2563eb]"}`}>ระบบวงรอบคุณภาพ</span>
               <span className="text-sm font-black text-white font-sans mt-0.5">PDCA</span>
               <span className="text-[9px] font-mono text-gray-400 mt-1">ISO 9001:2015</span>
             </div>
@@ -112,10 +112,10 @@ export default function PDCAInteractive({ isNightMode = false }: { isNightMode?:
             {/* Connecting circular svg arrows/lines */}
             <svg className="absolute inset-0 w-full h-full rotate-45 pointer-events-none z-10" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="44" fill="none" stroke="#1E293B" strokeWidth="1" />
-              <path d="M 50 6 A 44 44 0 0 1 94 50" fill="none" stroke="rgba(56, 189, 248, 0.2)" strokeWidth="1.5" />
-              <path d="M 94 50 A 44 44 0 0 1 50 94" fill="none" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="1.5" />
-              <path d="M 50 94 A 44 44 0 0 1 6 50" fill="none" stroke="rgba(245, 158, 11, 0.2)" strokeWidth="1.5" />
-              <path d="M 6 50 A 44 44 0 0 1 50 6" fill="none" stroke="rgba(244, 63, 94, 0.2)" strokeWidth="1.5" />
+              <path d="M 50 6 A 44 44 0 0 1 94 50" fill="none" stroke="rgba(56, 189, 248, 0.3)" strokeWidth="1.5" />
+              <path d="M 94 50 A 44 44 0 0 1 50 94" fill="none" stroke="rgba(99, 102, 241, 0.3)" strokeWidth="1.5" />
+              <path d="M 50 94 A 44 44 0 0 1 6 50" fill="none" stroke="rgba(14, 165, 233, 0.3)" strokeWidth="1.5" />
+              <path d="M 6 50 A 44 44 0 0 1 50 6" fill="none" stroke="rgba(59, 130, 246, 0.3)" strokeWidth="1.5" />
             </svg>
 
             {/* PLAN Quadrant */}
@@ -140,12 +140,12 @@ export default function PDCAInteractive({ isNightMode = false }: { isNightMode?:
               onClick={() => setActivePhase("DO")}
               className={`absolute top-0 right-0 w-1/2 h-1/2 rounded-tr-full border-l border-b border-blue-950 flex flex-col items-start justify-end p-4 md:p-6 transition-all duration-300 ${
                 activePhase === "DO" 
-                  ? "bg-emerald-600/20 text-white scale-102 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10" 
-                  : "text-gray-400 hover:text-gray-200 hover:bg-emerald-900/5"
+                  ? "bg-indigo-600/20 text-white scale-102 ring-2 ring-indigo-500/30 shadow-lg shadow-indigo-500/10" 
+                  : "text-gray-400 hover:text-gray-200 hover:bg-indigo-900/5"
               }`}
             >
               <div className="text-left pl-2 pb-2">
-                <span className="block text-[11px] font-mono font-bold tracking-widest text-emerald-400">02</span>
+                <span className="block text-[11px] font-mono font-bold tracking-widest text-indigo-400">02</span>
                 <span className="text-sm font-black font-sans">DO</span>
               </div>
             </button>
@@ -156,12 +156,12 @@ export default function PDCAInteractive({ isNightMode = false }: { isNightMode?:
               onClick={() => setActivePhase("CHECK")}
               className={`absolute bottom-0 right-0 w-1/2 h-1/2 rounded-br-full border-l border-t border-blue-950 flex flex-col items-start justify-start p-4 md:p-6 transition-all duration-300 ${
                 activePhase === "CHECK" 
-                  ? "bg-amber-500/20 text-white scale-102 ring-2 ring-amber-500/30 shadow-lg shadow-amber-500/10" 
-                  : "text-gray-400 hover:text-gray-200 hover:bg-amber-900/5"
+                  ? "bg-sky-500/20 text-white scale-102 ring-2 ring-sky-500/30 shadow-lg shadow-sky-500/10" 
+                  : "text-gray-400 hover:text-gray-200 hover:bg-sky-900/5"
               }`}
             >
               <div className="text-left pl-2 pt-2">
-                <span className="block text-[11px] font-mono font-bold tracking-widest text-amber-400">03</span>
+                <span className="block text-[11px] font-mono font-bold tracking-widest text-sky-400">03</span>
                 <span className="text-sm font-black font-sans">CHECK</span>
               </div>
             </button>
@@ -172,12 +172,12 @@ export default function PDCAInteractive({ isNightMode = false }: { isNightMode?:
               onClick={() => setActivePhase("ACT")}
               className={`absolute bottom-0 left-0 w-1/2 h-1/2 rounded-bl-full border-r border-t border-blue-950 flex flex-col items-end justify-start p-4 md:p-6 transition-all duration-300 ${
                 activePhase === "ACT" 
-                  ? "bg-rose-600/20 text-white scale-102 ring-2 ring-rose-500/30 shadow-lg shadow-rose-500/10" 
-                  : "text-gray-400 hover:text-gray-200 hover:bg-rose-900/5"
+                  ? "bg-blue-600/20 text-white scale-102 ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10" 
+                  : "text-gray-400 hover:text-gray-200 hover:bg-blue-900/5"
               }`}
             >
               <div className="text-right pr-2 pt-2">
-                <span className="block text-[11px] font-mono font-bold tracking-widest text-rose-400">04</span>
+                <span className="block text-[11px] font-mono font-bold tracking-widest text-blue-400">04</span>
                 <span className="text-sm font-black font-sans">ACT</span>
               </div>
             </button>
