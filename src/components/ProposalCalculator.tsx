@@ -39,10 +39,14 @@ export default function ProposalCalculator({ isNightMode = false }: { isNightMod
   return (
     <div 
       id="proposal-calculator-card" 
-      className="p-[1.5px] rounded-2xl bg-gradient-to-r from-white via-white/50 to-white/10 shadow-[0_0_25px_rgba(255,255,255,0.15)] relative overflow-hidden transition-all duration-500"
+      className={`p-[1.5px] rounded-3xl relative overflow-hidden transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.25)] ${
+        isNightMode ? 'bg-gradient-to-br from-blue-900/30 to-slate-900/5' : 'bg-gradient-to-br from-blue-400/40 to-blue-900/10'
+      }`}
     >
-      {/* Background overlay inside the premium frame */}
-      <div className="bg-slate-950/80 backdrop-blur-lg rounded-2xl p-6 md:p-8 relative text-left text-white h-full border border-white/5">
+      {/* Background overlay inside the premium frame - True Glassmorphism */}
+      <div className={`backdrop-blur-2xl rounded-3xl p-6 md:p-8 relative text-left text-white h-full border ${
+        isNightMode ? 'bg-[#09152B]/40 border-white/10' : 'bg-[#0F2B46]/70 border-white/20'
+      }`}>
         {/* Subtle top decoration */}
         <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 bg-white text-slate-950 rounded-full p-2.5 shadow-lg border border-white/20 flex items-center justify-center pointer-events-none">
           <Award className="w-5 h-5 text-slate-950" />
@@ -145,7 +149,7 @@ export default function ProposalCalculator({ isNightMode = false }: { isNightMod
               {/* Step 3: Current Expenses */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-mono uppercase tracking-wide block text-white">
-                  งบค่าซ่อมบำรุง/ส่วนกลางต่อเดือน ($)
+                  งบค่าซ่อมบำรุง/ส่วนกลางต่อเดือน (฿)
                 </label>
                 <div className="relative">
                   <input
@@ -158,7 +162,7 @@ export default function ProposalCalculator({ isNightMode = false }: { isNightMod
                     onChange={(e) => setCurrentExpense(Math.max(0, Number(e.target.value)))}
                     className="w-full text-xs p-3 rounded-xl border border-white/35 bg-white/5 font-extrabold font-mono focus:outline-none transition-all text-white focus:bg-white/10 focus:border-white focus:ring-1 focus:ring-white"
                   />
-                  <span className="absolute left-3 top-3 text-xs font-mono text-white">$</span>
+                  <span className="absolute left-3 top-3 text-sm font-mono text-[#D4A017] font-bold">฿</span>
                 </div>
               </div>
             </div>
@@ -191,7 +195,7 @@ export default function ProposalCalculator({ isNightMode = false }: { isNightMod
               </div>
               <div className="text-right">
                 <span className="font-mono text-[9px] font-extrabold text-white block">เซฟสะสมรายเดือนประมาณการ</span>
-                <p className="font-mono text-sm sm:text-base font-black text-white mt-0.5">+${estimatedMonthlySavings.toLocaleString()}/ด.</p>
+                <p className="font-mono text-sm sm:text-base font-black text-emerald-400 mt-0.5">+฿{estimatedMonthlySavings.toLocaleString()}/ด.</p>
               </div>
             </div>
 
@@ -236,7 +240,7 @@ export default function ProposalCalculator({ isNightMode = false }: { isNightMod
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl p-3 border border-white/30 bg-white/5 text-left transition-all">
                   <span className="text-[9px] font-mono text-white block uppercase">งบเซฟรายเดือน</span>
-                  <span className="text-xs sm:text-sm font-black font-mono text-white mt-1 block">${estimatedMonthlySavings.toLocaleString()}</span>
+                  <span className="text-xs sm:text-sm font-black font-mono text-emerald-400 mt-1 block">+฿{estimatedMonthlySavings.toLocaleString()}</span>
                 </div>
                 <div className="rounded-xl p-3 border border-white/30 bg-white/5 text-left transition-all">
                   <span className="text-[9px] font-mono text-white block uppercase">ลดพลังงานคาร์บอน</span>
