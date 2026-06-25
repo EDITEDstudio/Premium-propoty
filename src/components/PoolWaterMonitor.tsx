@@ -93,7 +93,7 @@ export default function PoolWaterMonitor({ isNightMode }: PoolWaterMonitorProps)
           {/* Slider 1: pH */}
           <div>
             <div className="flex justify-between text-xs font-sans mb-1">
-              <span className={isNightMode ? "text-slate-300" : "text-slate-600"}>ค่าความเป็นกรด-ด่าง (pH)</span>
+              <span className={isNightMode ? "text-slate-300" : "text-slate-800"}>ค่าความเป็นกรด-ด่าง (pH)</span>
               <span className={`font-mono font-bold ${isPhOk ? "text-emerald-500" : "text-rose-500"}`}>
                 {pH.toFixed(1)} {isPhOk ? "(มาตรฐาน 7.2 - 7.6)" : "(ผิดค่ากำหนด)"}
               </span>
@@ -114,7 +114,7 @@ export default function PoolWaterMonitor({ isNightMode }: PoolWaterMonitorProps)
           {/* Slider 2: Chlorine */}
           <div>
             <div className="flex justify-between text-xs font-sans mb-1">
-              <span className={isNightMode ? "text-slate-300" : "text-slate-600"}>ปริมาณสารคลอรีนอิสระ</span>
+              <span className={isNightMode ? "text-slate-300" : "text-slate-800"}>ปริมาณสารคลอรีนอิสระ</span>
               <span className={`font-mono font-bold ${isChlorineOk ? "text-emerald-500" : "text-rose-500"}`}>
                 {chlorine.toFixed(1)} ppm {isChlorineOk ? "(มาตรฐาน 1.0 - 3.0)" : "(ผิดค่ากำหนด)"}
               </span>
@@ -135,7 +135,7 @@ export default function PoolWaterMonitor({ isNightMode }: PoolWaterMonitorProps)
           {/* Slider 3: Turbidity */}
           <div>
             <div className="flex justify-between text-xs font-sans mb-1">
-              <span className={isNightMode ? "text-slate-300" : "text-slate-600"}>ความขุ่นในน้ำ (Turbidity)</span>
+              <span className={isNightMode ? "text-slate-300" : "text-slate-800"}>ความขุ่นในน้ำ (Turbidity)</span>
               <span className={`font-mono font-bold ${isTurbidityOk ? "text-emerald-500" : "text-rose-500"}`}>
                 {turbidity.toFixed(2)} NTU {isTurbidityOk ? "(ใสสะอาด < 0.5)" : "(น้ำขุ่นมัว)"}
               </span>
@@ -156,7 +156,7 @@ export default function PoolWaterMonitor({ isNightMode }: PoolWaterMonitorProps)
           {/* Slider 4: Temperature */}
           <div>
             <div className="flex justify-between text-xs font-sans mb-1">
-              <span className={isNightMode ? "text-slate-300" : "text-slate-600"}>อุณหภูมิน้ำในสระ (°C)</span>
+              <span className={isNightMode ? "text-slate-300" : "text-slate-800"}>อุณหภูมิน้ำในสระ (°C)</span>
               <span className={`font-mono font-bold ${isTempOk ? "text-emerald-500" : "text-rose-500"}`}>
                 {temp.toFixed(1)} °C {isTempOk ? "(มาตรฐาน 24 - 30)" : "(นอกเกณฑ์)"}
               </span>
@@ -176,33 +176,33 @@ export default function PoolWaterMonitor({ isNightMode }: PoolWaterMonitorProps)
 
           {/* Quick presets buttons */}
           <div className="pt-2 border-t border-dashed border-slate-500/20">
-            <span className="text-[9px] font-mono text-slate-400 block mb-1.5">ปุ่มจำลองสถานการณ์น้ำในสระ:</span>
+            <span className={`text-[9px] font-mono block mb-1.5 ${isNightMode ? 'text-slate-400' : 'text-slate-600'}`}>ปุ่มจำลองสถานการณ์น้ำในสระ:</span>
             <div className="grid grid-cols-2 gap-1.5">
               <button
                 type="button"
                 onClick={() => applyPreset("ideal")}
-                className="py-1 px-1.5 rounded bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/20 text-[10px] font-bold font-sans transition-all cursor-pointer"
+                className={`py-1 px-1.5 rounded border text-[10px] font-bold font-sans transition-all cursor-pointer ${isNightMode ? 'bg-emerald-600/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-600/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'}`}
               >
                 ✓ ค่าใสมาตรฐาน
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset("acidic")}
-                className="py-1 px-1.5 rounded bg-rose-600/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600/20 text-[10px] font-bold font-sans transition-all cursor-pointer"
+                className={`py-1 px-1.5 rounded border text-[10px] font-bold font-sans transition-all cursor-pointer ${isNightMode ? 'bg-rose-600/10 text-rose-400 border-rose-500/20 hover:bg-rose-600/20' : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'}`}
               >
                 ⚠ น้ำเป็นกรด / ฝนตกลงสระ
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset("low-chlorine")}
-                className="py-1 px-1.5 rounded bg-amber-600/10 text-amber-400 border border-amber-500/20 hover:bg-amber-600/20 text-[10px] font-bold font-sans transition-all cursor-pointer"
+                className={`py-1 px-1.5 rounded border text-[10px] font-bold font-sans transition-all cursor-pointer ${isNightMode ? 'bg-amber-600/10 text-amber-400 border-amber-500/20 hover:bg-amber-600/20' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'}`}
               >
                 ☼ คลอรีนต่ำมาก / แดดเผา
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset("turbid")}
-                className="py-1 px-1.5 rounded bg-emerald-950 text-teal-400 border border-teal-800 hover:bg-teal-900 text-[10px] font-bold font-sans transition-all cursor-pointer"
+                className={`py-1 px-1.5 rounded border text-[10px] font-bold font-sans transition-all cursor-pointer ${isNightMode ? 'bg-emerald-950 text-teal-400 border-teal-800 hover:bg-teal-900' : 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100'}`}
               >
                 ♒ สระขุ่นมัวจากตะกอน
               </button>

@@ -38,7 +38,12 @@ import {
   Home as HomeIcon,
   Layers,
   Settings,
-  DollarSign
+  DollarSign,
+  Plus,
+  Briefcase,
+  Clock,
+  LineChart,
+  FileText
 } from "lucide-react";
 
 import HeroDashboard from "./components/HeroDashboard";
@@ -130,6 +135,13 @@ export default function App() {
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
+  const [isAddTeamMemberModalOpen, setIsAddTeamMemberModalOpen] = useState(false);
+
+  const [teamMembersState, setTeamMembersState] = useState(() => {
+    const saved = localStorage.getItem("premium_team_members");
+    if (saved) return JSON.parse(saved);
+    return teamMembers;
+  });
 
   const handleDeleteProject = (id: string) => {
     if (!window.confirm("คุณต้องการลบโครงการนี้ออกอย่างถาวรใช่หรือไม่?")) return;
@@ -170,9 +182,24 @@ export default function App() {
     localStorage.setItem("premium_portfolio_data", JSON.stringify(updated));
   };
 
+  const handleAddTeamMember = (newMember: any) => {
+    const updated = [...teamMembersState, newMember];
+    setTeamMembersState(updated);
+    localStorage.setItem("premium_team_members", JSON.stringify(updated));
+    setIsAddTeamMemberModalOpen(false);
+  };
+
+  const handleDeleteTeamMember = (indexToDelete: number) => {
+    if (!window.confirm("คุณต้องการลบวิศวกร/ผู้สอบบัญชีท่านนี้ใช่หรือไม่?")) return;
+    const updated = teamMembersState.filter((_: any, idx: number) => idx !== indexToDelete);
+    setTeamMembersState(updated);
+    localStorage.setItem("premium_team_members", JSON.stringify(updated));
+  };
+
   // New Dashboard States
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState<any>(null);
   const [activeChatPartner, setActiveChatPartner] = useState<"kianna" | "jaydon" | "mira">("kianna");
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInputText, setChatInputText] = useState("");
   const [isChatTyping, setIsChatTyping] = useState(false);
   const [activeSimTab, setActiveSimTab] = useState<"iot" | "pdca" | "renovation" | "proposal">("iot");
@@ -424,6 +451,98 @@ export default function App() {
             <p className="text-[10px] text-center text-slate-400 font-sans mt-2">
               (บัญชีทดสอบ: admin / admin)
             </p>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const AddTeamMemberModal = () => {
+    const [name, setName] = useState("");
+    const [role, setRole] = useState("");
+    const [experience, setExperience] = useState("");
+    const [certification, setCertification] = useState("");
+    const [bio, setBio] = useState("");
+    const [image, setImage] = useState("");
+    const [imagePreview, setImagePreview] = useState("");
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result as string;
+          setImage(base64String);
+          setImagePreview(base64String);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!name || !role || !image) {
+        alert("กรุณากรอกข้อมูลชื่อ, ตำแหน่ง และแนบรูปภาพ");
+        return;
+      }
+      handleAddTeamMember({ name, role, experience, certification, bio, image });
+      setName(""); setRole(""); setExperience(""); setCertification(""); setBio(""); setImage(""); setImagePreview("");
+    };
+
+    if (!isAddTeamMemberModalOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className={`w-full max-w-2xl rounded-3xl shadow-2xl p-6 sm:p-8 overflow-y-auto max-h-[90vh] ${isNightMode ? "bg-[#0B172E] text-white" : "bg-white text-slate-800"}`}>
+          <div className="flex justify-between items-center mb-6 text-left">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black font-sans">เพิ่มสมาชิกทีม (Add Team Member)</h2>
+              <p className={`text-sm mt-1 font-sans ${isNightMode ? "text-slate-400" : "text-slate-500"}`}>เพิ่มรายชื่อวิศวกรหรือผู้สอบบัญชีสำหรับอาคารคุณ</p>
+            </div>
+            <button onClick={() => setIsAddTeamMemberModalOpen(false)} className={`p-2 rounded-xl transition-all cursor-pointer ${isNightMode ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 text-slate-500"}`}>
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4 font-sans text-sm text-left">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="font-bold">ชื่อ-นามสกุล</label>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="เช่น คุณวรวุฒิ ศิริเลิศโสภณ" className={`w-full px-4 py-3 rounded-xl border outline-none transition-all ${isNightMode ? "bg-[#091224] border-slate-700 focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-600"}`} />
+              </div>
+              <div className="space-y-1.5">
+                <label className="font-bold">ตำแหน่ง (Role)</label>
+                <input type="text" value={role} onChange={e => setRole(e.target.value)} placeholder="เช่น ผู้จัดการนิติบุคคล" className={`w-full px-4 py-3 rounded-xl border outline-none transition-all ${isNightMode ? "bg-[#091224] border-slate-700 focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-600"}`} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-bold">ประสบการณ์ (Experience)</label>
+              <input type="text" value={experience} onChange={e => setExperience(e.target.value)} placeholder="เช่น ประสบการณ์ 12+ ปี..." className={`w-full px-4 py-3 rounded-xl border outline-none transition-all ${isNightMode ? "bg-[#091224] border-slate-700 focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-600"}`} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-bold">ใบรับรอง / คุณวุฒิ (Certification)</label>
+              <input type="text" value={certification} onChange={e => setCertification(e.target.value)} placeholder="เช่น ใบรับรอง IPMA..." className={`w-full px-4 py-3 rounded-xl border outline-none transition-all ${isNightMode ? "bg-[#091224] border-slate-700 focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-600"}`} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-bold">ประวัติย่อ / ความรับผิดชอบ (Bio)</label>
+              <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} placeholder="คำอธิบายความรับผิดชอบย่อๆ..." className={`w-full px-4 py-3 rounded-xl border outline-none transition-all resize-none ${isNightMode ? "bg-[#091224] border-slate-700 focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-600"}`} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-bold">รูปภาพประจำตัว</label>
+              <input type="file" accept="image/*" onChange={handleImageChange} className={`w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:cursor-pointer ${isNightMode ? "file:bg-slate-800 file:text-slate-200 text-slate-400" : "file:bg-slate-100 file:text-slate-700 text-slate-500"}`} />
+              {imagePreview && (
+                <div className="mt-3 aspect-video w-32 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+            <div className="pt-4 flex gap-3">
+              <button type="button" onClick={() => setIsAddTeamMemberModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold transition-all cursor-pointer ${isNightMode ? "bg-slate-800 hover:bg-slate-700 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}>
+                ยกเลิก
+              </button>
+              <button type="submit" className="flex-1 py-3 rounded-xl font-bold transition-all cursor-pointer bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2">
+                <Plus className="w-5 h-5" /> บันทึกข้อมูล
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -887,6 +1006,14 @@ export default function App() {
                 <Users className="w-3.5 h-3.5" />
                 <span>เกี่ยวกับเรา</span>
               </button>
+              <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+              <button 
+                onClick={() => setIsContactOpen(true)} 
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full transition-all cursor-pointer bg-blue-600 dark:bg-sky-500 text-white hover:bg-blue-700 dark:hover:bg-sky-400 shadow-sm"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>ติดต่อเรา</span>
+              </button>
             </nav>
 
             {/* Profile Avatar / Icons */}
@@ -957,6 +1084,8 @@ export default function App() {
                 <button onClick={() => { navigateToMenu("services"); setIsMobileMenuOpen(false); }} className={`p-2.5 rounded-lg text-left ${activeMenu === "services" ? "bg-white dark:bg-slate-850 text-blue-600 dark:text-sky-400" : "text-slate-500"}`}>ขอบเขตบริการ</button>
                 <button onClick={() => { navigateToMenu("portfolio", "estate"); setIsMobileMenuOpen(false); }} className={`p-2.5 rounded-lg text-left ${activeMenu === "portfolio" ? "bg-white dark:bg-slate-850 text-blue-600 dark:text-sky-400" : "text-slate-500"}`}>ผลงานสะสม</button>
                 <button onClick={() => { navigateToMenu("about"); setIsMobileMenuOpen(false); }} className={`p-2.5 rounded-lg text-left ${activeMenu === "about" ? "bg-white dark:bg-slate-850 text-blue-600 dark:text-sky-400" : "text-slate-500"}`}>เกี่ยวกับเรา</button>
+                <div className="border-t border-slate-100 dark:border-slate-800 my-2"></div>
+                <button onClick={() => { setIsContactOpen(true); setIsMobileMenuOpen(false); }} className="p-2.5 rounded-lg text-left bg-blue-600 text-white font-bold">ติดต่อเรา (Contact)</button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -1016,7 +1145,217 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6 text-left">
           
           {/* ==========================================
-              LEFT PANEL: 8 Columns
+              NEW HEADER SECTION
+              ========================================== */}
+          <div className="lg:col-span-12 mb-6">
+            <div className="relative w-full rounded-3xl overflow-hidden mb-6 shadow-lg group">
+              <img 
+                src="/header-bg.jpg" 
+                alt="Premium Property Header" 
+                className="w-full h-auto transition-transform duration-700 group-hover:scale-105 block"
+              />
+              <div className="absolute inset-0 bg-black/40 dark:bg-black/60 flex flex-col items-center justify-center p-6 text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white font-display tracking-tight drop-shadow-md">
+                    PREMIUM PROPOTY
+                  </h1>
+                  <span className="text-sm sm:text-base font-mono text-white/90 uppercase tracking-[0.3em] mt-3 block drop-shadow">
+                    Property & Trading Systems
+                  </span>
+                </motion.div>
+              </div>
+            </div>
+            
+            <div className="max-w-4xl mx-auto text-center px-4">
+              <p className={`text-base sm:text-lg font-sans leading-relaxed ${isNightMode ? "text-slate-300" : "text-slate-600"}`}>
+                ยกระดับมาตรฐานการบริหารจัดการอสังหาริมทรัพย์ระดับพรีเมียม ด้วยความเชี่ยวชาญทางวิศวกรรมและเทคโนโลยีล้ำสมัย เรามุ่งมั่นสร้างสรรค์สังคมคุณภาพที่ปลอดภัย สะดวกสบาย และยั่งยืน เพื่อรักษามูลค่าทรัพย์สินและมอบประสบการณ์การอยู่อาศัยที่ดีที่สุดให้กับลูกบ้านทุกคน
+              </p>
+            </div>
+          </div>
+
+          {/* ==========================================
+              NEW SECTION A: Why Trust Us
+              ========================================== */}
+          <div className="lg:col-span-12 mb-2 mt-4">
+            <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
+              <span className="text-xs font-mono font-bold text-[#D4A017] uppercase tracking-widest block">Proven Excellence</span>
+              <h3 className={`text-2xl sm:text-3xl font-black font-sans tracking-tight ${isNightMode ? "text-white" : "text-slate-900"}`}>
+                ทำไมโครงการระดับพรีเมียมมากกว่า 90 แห่งถึงไว้วางใจเรา?
+              </h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className={`p-6 rounded-2xl border transition-all ${isNightMode ? "bg-[#09152B]/60 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"} flex flex-col items-center text-center gap-4 group`}>
+                <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-sky-400 group-hover:scale-110 transition-transform">
+                  <ShieldCheck className="w-8 h-8" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold font-sans mb-2">มาตรฐานระดับสากล ISO</h4>
+                  <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400 font-sans">
+                    ทำงานด้วยระบบ PDCA สอดคล้องกับมาตรฐาน ISO 9001:2015 ตรวจสอบได้ทุกขั้นตอนแบบ 100% โปร่งใส ปราศจากการทุจริต
+                  </p>
+                </div>
+              </div>
+
+              <div className={`p-6 rounded-2xl border transition-all ${isNightMode ? "bg-[#09152B]/60 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"} flex flex-col items-center text-center gap-4 group`}>
+                <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                  <TrendingDown className="w-8 h-8" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold font-sans mb-2">ลดค่าใช้จ่าย Opex ได้จริง</h4>
+                  <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400 font-sans">
+                    วิเคราะห์จุดสูญเสียพลังงานและจุดเสื่อมสภาพด้วยวิศวกรผู้เชี่ยวชาญ ช่วยลดงบซ่อมบำรุงและค่าพลังงานส่วนกลางลงได้ถึง 30%
+                  </p>
+                </div>
+              </div>
+
+              <div className={`p-6 rounded-2xl border transition-all ${isNightMode ? "bg-[#09152B]/60 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"} flex flex-col items-center text-center gap-4 group`}>
+                <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+                  <Clock className="w-8 h-8" />
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <h4 className="text-lg font-bold font-sans mb-2">ตอบสนองเหตุฉุกเฉิน 24/7</h4>
+                  <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400 font-sans">
+                    มีทีมหน่วยปฏิบัติการพิเศษ (Operational Dispatch) สแตนด์บายพร้อมเข้าแก้ไขปัญหาภายใน 1 ชั่วโมง เพื่อไม่ให้กระทบต่อการอยู่อาศัย
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ==========================================
+              NEW SECTION B: Capabilities by Property Type
+              ========================================== */}
+          <div className="lg:col-span-12 mt-8 mb-4">
+            <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+              <span className="text-xs font-mono font-bold text-[#D4A017] uppercase tracking-widest block">Property Expertise</span>
+              <h3 className={`text-2xl sm:text-3xl font-black font-sans tracking-tight ${isNightMode ? "text-white" : "text-slate-900"}`}>
+                ขีดความสามารถการดูแลจำแนกตามประเภททรัพย์สิน
+              </h3>
+            </div>
+            
+            <div className="flex flex-col gap-8 max-w-[90rem] mx-auto mt-12 relative z-10 px-4 lg:px-8 xl:px-12">
+              {[
+                { 
+                  type: "บริหารจัดการหมู่บ้านจัดสรรหรู", 
+                  subtitle: "การจัดระเบียบชุมชนและเทคนิคส่วนกลางเชิงลึก",
+                  img: "/house-img.png?v=2", 
+                  desc: "คุมเข้มระเบียบสกรีนการเข้าผ่านของบุคคลภายนอก ตรวจตราและบำรุงปั๊มสูบน้ำส่วนกลาง และปรับลดงบผู้รับเหมาจัดสวนแบบสัมบูรณ์",
+                  bullets: [
+                    "ควบคุมระบบความปลอดภัยและรถผู้มาติดต่อเข้มข้น",
+                    "บริหารเจรจาผู้รับเหมาสวนหย่อมประหยัดงบได้จริง 15%",
+                    "ทดสอบระบบวาล์วน้ำป้องประปารั่วซึมใต้ท่อเมนหมู่บ้าน"
+                  ]
+                },
+                { 
+                  type: "บริหารคอมมูนิตี้ คอนโดมิเนียมสูง", 
+                  subtitle: "วิศวกรรมสระส่วนกลาง ลิฟต์ และรายงานบัญชีตรวจสอบได้",
+                  img: "/condo-img.png?v=2", 
+                  desc: "ดูแลรักษาปั๊มหมุนชิลเลอร์ ควบคุมค่าสารเคมี บำบัดประหยัดตารางแอร์ลิฟต์ส่วนกลาง ตรา ISO ตรวจสอบสด และจัดประชุมอย่างสร้างสรรค์โปร่งใส",
+                  bullets: [
+                    "บำรุงวิศวกรรมลิฟต์โดยสารและระบบ Chiller ตึกสูง",
+                    "ระบบตรวจสอบ IoT ดิจิทัลตรวจสอบค่าน้ำสระว่ายน้ำส่วนกลาง",
+                    "จัดทำรายงานงบการเงินและบัญชีรายเดือนสองฝ่ายชัดเจน"
+                  ]
+                },
+                { 
+                  type: "บริหารอาคารและตึกสำนักงานพาณิชย์", 
+                  subtitle: "การประหยัดพลังงานขั้นสูงระดับ HVAC & BEMS",
+                  img: "/office-img.png?v=2", 
+                  desc: "วางพารามิเตอร์ตารางสลับแอร์ยักษ์ เจรจาซื้ออุปกรณ์จัดจ้างสากล ควบคุมเจ้าหน้าที่หน้าด่าน บุคลากร รปภ. ตรวจสภาวะระบบฉุกเฉินระดับสูง",
+                  bullets: [
+                    "วางพารามิเตอร์ตารางคุมเครื่องปรับอากาศส่วนกลาง Chiller",
+                    "ตรวจสอบสัญญางบประมาณจัดจ้างคู่ค้าอย่างตรงไปตรงมา",
+                    "พัฒนาศักยภาพต้อนรับ รปภ. และจัดเก็บใบแจ้งหนี้สากล"
+                  ]
+                }
+              ].map((cap, i) => (
+                <div key={i} className={`relative flex flex-col lg:flex-row items-center justify-between gap-6 px-6 py-6 md:px-10 md:py-8 xl:px-16 xl:py-12 group transition-all duration-500 rounded-[3rem] bg-gradient-to-r ${!isNightMode ? 'from-[#F0F8FF]/80 to-[#E3F2FD]/50 shadow-[inset_0_2px_15px_rgba(255,255,255,1),_0_10px_30px_rgba(0,0,0,0.05)] border border-white/60' : 'from-slate-800/80 to-slate-900/50 shadow-[inset_0_2px_20px_rgba(255,255,255,0.05),_0_10px_30px_rgba(0,0,0,0.5)] border border-slate-700/60'} backdrop-blur-md overflow-hidden ${i % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
+                  
+                  {/* Decorative Glow */}
+                  <div className={`absolute top-1/2 -translate-y-1/2 ${i % 2 === 0 ? '-left-20' : '-right-20'} w-64 h-64 bg-blue-300/30 dark:bg-blue-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700`}></div>
+                  
+                  {/* Image Display */}
+                  <div className="w-full lg:w-5/12 flex items-center justify-center relative z-10 shrink-0">
+                    <img 
+                      src={cap.img} 
+                      alt={cap.type} 
+                      className={`h-[260px] sm:h-[320px] md:h-[400px] lg:h-[480px] xl:h-[540px] object-contain transition-transform duration-700 group-hover:scale-110 drop-shadow-2xl`} 
+                    />
+                  </div>
+                  
+                  {/* Text Content */}
+                  <div className={`w-full lg:w-7/12 relative z-10 flex flex-col justify-center px-4 md:px-8 xl:px-12`}>
+                    <h4 className={`text-xl md:text-3xl lg:text-[32px] font-black mb-2 font-sans tracking-tight ${!isNightMode ? 'text-slate-900' : 'text-white'}`}>{cap.type}</h4>
+                    <div className="text-sm md:text-base font-bold text-blue-600 dark:text-sky-400 mb-5">{cap.subtitle}</div>
+                    
+                    <p className={`text-sm md:text-lg leading-relaxed font-sans mb-6 ${!isNightMode ? 'text-slate-700' : 'text-slate-300'}`}>
+                      {cap.desc}
+                    </p>
+                    
+                    <div className="space-y-4">
+                      {cap.bullets.map((bullet, idx) => (
+                        <div key={idx} className="flex items-start gap-4">
+                          <div className={`mt-1 rounded-full p-1 shrink-0 ${!isNightMode ? 'bg-blue-100 text-blue-600' : 'bg-blue-900/50 text-blue-400'}`}>
+                            <Check className="w-4 h-4" />
+                          </div>
+                          <span className={`text-sm md:text-[15px] xl:text-[17px] font-sans ${!isNightMode ? 'text-slate-700' : 'text-slate-300'}`}>{bullet}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ==========================================
+              NEW SECTION C: Workflow & Value Proposition
+              ========================================== */}
+          <div className="lg:col-span-12 mt-8 mb-12">
+             <div className={`p-8 sm:p-10 rounded-3xl border ${isNightMode ? "bg-gradient-to-br from-[#09152B] to-[#040812] border-blue-900/30" : "bg-gradient-to-br from-blue-50 to-white border-blue-100"}`}>
+                <div className="max-w-3xl mx-auto text-center mb-10 space-y-3">
+                  <span className="text-xs font-mono font-bold text-blue-600 dark:text-sky-400 uppercase tracking-widest block">Workflow & ROI</span>
+                  <h3 className={`text-2xl sm:text-3xl font-black font-sans tracking-tight ${isNightMode ? "text-white" : "text-slate-900"}`}>
+                    กระบวนการทำงานที่ชัดเจน ผลตอบแทนที่จับต้องได้
+                  </h3>
+                  <p className="text-sm font-sans text-slate-500 dark:text-slate-400">
+                    เราไม่เพียงแต่บริหารงานทั่วไป แต่เรายกระดับมูลค่าทรัพย์สินของคุณผ่าน 4 ขั้นตอนการดำเนินงานเชิงรุก
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                  {/* Connection Line for Desktop */}
+                  <div className="hidden lg:block absolute top-6 left-[12%] right-[12%] h-[2px] bg-gradient-to-r from-blue-200 via-blue-400 to-emerald-200 dark:from-blue-900 dark:via-sky-700 dark:to-emerald-800 z-0 opacity-50"></div>
+
+                  {[
+                    { step: "01", title: "Audit & Analyze", desc: "วิศวกรเข้าประเมินจุดบกพร่องและวิเคราะห์สถานะการเงินของนิติบุคคล", icon: <Search className="w-5 h-5" /> },
+                    { step: "02", title: "Plan & Propose", desc: "จัดทำแผน SOP และยื่นข้อเสนอแนวทางลดค่าใช้จ่ายรายเดือน", icon: <FileText className="w-5 h-5" /> },
+                    { step: "03", title: "Execute & Manage", desc: "จัดตั้งทีมงานมืออาชีพเข้าบริหารจัดการตามมาตรฐาน ISO 9001", icon: <Settings className="w-5 h-5" /> },
+                    { step: "04", title: "Report & ROI", desc: "รายงานผลเรียลไทม์ผ่านแดชบอร์ด ทรัพย์สินมูลค่าเพิ่ม ค่าส่วนกลางลดลง", icon: <LineChart className="w-5 h-5" /> },
+                  ].map((s, i) => (
+                    <div key={i} className="relative z-10 flex flex-col items-center text-center gap-3">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold shadow-md border-4 ${isNightMode ? "bg-[#09152B] border-[#040812] text-blue-400" : "bg-white border-blue-50 text-blue-600"}`}>
+                        {s.icon}
+                      </div>
+                      <div className={`p-4 rounded-2xl w-full border ${isNightMode ? "bg-[#0B172E]/80 border-slate-800" : "bg-white border-slate-100 shadow-sm"}`}>
+                        <span className={`text-[11px] font-black mb-1 block tracking-wider ${isNightMode ? 'text-sky-400' : 'text-blue-600'}`}>STEP {s.step}</span>
+                        <h4 className={`text-sm font-bold font-sans mb-2 ${isNightMode ? 'text-white' : 'text-blue-700'}`}>{s.title}</h4>
+                        <p className={`text-xs font-sans leading-relaxed ${isNightMode ? 'text-slate-400' : 'text-slate-600'}`}>{s.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             </div>
+          </div>
+
+          {/* ==========================================
+              LEFT PANEL: 8 Columns (Dashboard)
               ========================================== */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             
@@ -1262,174 +1601,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Row 5: Operational Dispatch & Chat Logs */}
-            <div className={`p-5 rounded-2xl border transition-all ${
-              isNightMode ? "bg-[#091224]/80 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"
-            }`}>
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-850 pb-3 mb-4">
-                <div className="space-y-0.5 text-left">
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
-                    Operational Dispatch
-                  </span>
-                  <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
-                    ระบบประสานงานวิศวกรด่วนเชิงรุก (Chat Log)
-                  </h3>
-                </div>
-                <span className="flex items-center gap-1.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-sans">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>วิศวกรและผู้ตรวจบัญชีออนไลน์</span>
-                </span>
-              </div>
-
-              {/* Chat Panel Layout: grid columns */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                {/* Chat Partner list: col 4 */}
-                <div className="md:col-span-4 flex flex-col gap-2 border-r border-slate-100 dark:border-slate-850 pr-0 md:pr-4">
-                  {[
-                    { id: "kianna", name: "Kianna George", role: "วิศวกรโครงสร้าง SOP", avatar: "KG", unread: 2 },
-                    { id: "jaydon", name: "Jaydon Mango", role: "ผู้ตรวจวิเคราะห์ Opex", avatar: "JM", unread: 0 },
-                    { id: "mira", name: "Mira Mango", role: "ผู้สอบทาน ISO 9001", avatar: "MM", unread: 1 }
-                  ].map((p) => (
-                    <button 
-                      key={p.id}
-                      onClick={() => setActiveChatPartner(p.id as any)}
-                      className={`p-2 rounded-xl text-left transition-all flex items-center justify-between cursor-pointer ${
-                        activeChatPartner === p.id 
-                          ? "bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-sky-400" 
-                          : "hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-500 dark:text-slate-400"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold font-sans text-slate-800 dark:text-white">
-                          {p.avatar}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold font-sans leading-tight">{p.name}</span>
-                          <span className="text-[9px] text-slate-450 leading-none mt-0.5">{p.role}</span>
-                        </div>
-                      </div>
-                      {p.unread > 0 && activeChatPartner !== p.id && (
-                        <span className="text-[8px] font-black bg-emerald-500 text-white w-4 h-4 rounded-full flex items-center justify-center font-mono">
-                          {p.unread}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Chat logs & Input fields: col 8 */}
-                <div className="md:col-span-8 flex flex-col justify-between min-h-[220px]">
-                  {/* Messages container */}
-                  <div className="flex-1 overflow-y-auto max-h-[160px] space-y-3 mb-3 pr-2 scrollbar-thin">
-                    {(chatMessages[activeChatPartner] || []).map((msg, idx) => (
-                      <div key={idx} className={`flex flex-col max-w-[85%] ${msg.sender === "user" ? "ml-auto items-end" : "mr-auto items-start"}`}>
-                        <div className={`p-3 rounded-2xl text-xs font-medium leading-relaxed shadow-sm text-left ${
-                          msg.sender === "user" 
-                            ? "bg-blue-600 text-white rounded-tr-none" 
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-200/20"
-                        }`}>
-                          {msg.text}
-                        </div>
-                        <span className="text-[8px] text-slate-400 mt-1 font-mono">{msg.timestamp}</span>
-                      </div>
-                    ))}
-                    {isChatTyping && (
-                      <div className="flex items-center gap-1.5 mr-auto p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl rounded-tl-none w-16">
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Input field */}
-                  <div className="flex gap-2">
-                    <input 
-                      type="text"
-                      value={chatInputText}
-                      onChange={(e) => setChatInputText(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
-                      placeholder={`พิมพ์ข้อความตอบกลับ ${activeChatPartner === "kianna" ? "Kianna" : activeChatPartner === "jaydon" ? "Jaydon" : "Mira"}...`}
-                      className="flex-1 px-4 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border-0 outline-none text-slate-900 dark:text-white focus:ring-1 focus:ring-blue-600 dark:focus:ring-sky-500 placeholder-slate-400 font-sans"
-                    />
-                    <button 
-                      onClick={handleSendChatMessage}
-                      className="bg-blue-600 dark:bg-sky-500 text-white font-sans text-xs font-bold px-4 py-2 rounded-xl hover:bg-blue-700 transition-all flex items-center gap-1 cursor-pointer shadow-sm active:scale-95"
-                    >
-                      <span>ส่ง</span>
-                      <ArrowRight className="w-3 h-3 text-white" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Row 6: Interactive Simulators Panel */}
-            <div className={`p-5 rounded-2xl border transition-all ${
-              isNightMode ? "bg-[#091224]/80 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"
-            }`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-850 pb-3 mb-4 gap-2">
-                <div className="space-y-0.5 text-left">
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
-                    Interactive Controls
-                  </span>
-                  <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
-                    ห้องปฏิบัติการจำลองสมดุลส่วนกลาง (IoT & Audit Lab)
-                  </h3>
-                </div>
-
-                {/* Sub tabs switcher */}
-                <div className="bg-slate-100 dark:bg-slate-850 p-0.5 rounded-xl flex gap-1 text-[10px] font-bold self-start sm:self-auto font-sans border border-slate-200/20">
-                  <button 
-                    onClick={() => setActiveSimTab("iot")}
-                    className={`px-3 py-1.5 rounded-lg cursor-pointer transition-all ${activeSimTab === "iot" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-sky-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`}
-                  >
-                    IoT สระน้ำ
-                  </button>
-                  <button 
-                    onClick={() => setActiveSimTab("pdca")}
-                    className={`px-3 py-1.5 rounded-lg cursor-pointer transition-all ${activeSimTab === "pdca" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-sky-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`}
-                  >
-                    ISO 9001 PDCA
-                  </button>
-                  <button 
-                    onClick={() => setActiveSimTab("proposal")}
-                    className={`px-3 py-1.5 rounded-lg cursor-pointer transition-all ${activeSimTab === "proposal" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-sky-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`}
-                  >
-                    ประเมินแผนลดงบ
-                  </button>
-                </div>
-              </div>
-
-              {/* Render Selected Simulator Component */}
-              <div className="pt-2 text-left">
-                {activeSimTab === "iot" && (
-                  <PoolWaterMonitor isNightMode={isNightMode} />
-                )}
-                {activeSimTab === "pdca" && (
-                  <PDCAInteractive isNightMode={isNightMode} />
-                )}
-                {activeSimTab === "proposal" && (
-                  <ProposalCalculator isNightMode={isNightMode} />
-                )}
-              </div>
-            </div>
-
-            {/* Row 7: Standalone Before/After Renovation Slider */}
-            <div className={`p-5 rounded-2xl border transition-all ${
-              isNightMode ? "bg-[#091224]/80 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"
-            }`}>
-              <div className="border-b border-slate-100 dark:border-slate-850 pb-3 mb-4 text-left">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
-                  Case Studies Renovation
-                </span>
-                <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
-                  เปรียบเทียบก่อน-หลัง การปรับปรุงโครงสร้าง (Renovation Before/After)
-                </h3>
-              </div>
-              <BeforeAfterSlider isNightMode={isNightMode} />
-            </div>
-
           </div>
 
           {/* ==========================================
@@ -1444,7 +1615,7 @@ export default function App() {
                   <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
                     Listing Board
                   </span>
-                  <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
+                  <h3 className={`text-base font-extrabold tracking-tight font-sans ${isNightMode ? 'text-white' : 'text-slate-900'}`}>
                     พอร์ตโครงการบริหาร
                   </h3>
                 </div>
@@ -1511,7 +1682,7 @@ export default function App() {
                             )}
                           </div>
                         </div>
-                        <h4 className="text-xs font-bold leading-tight font-sans truncate text-slate-900 dark:text-white">
+                        <h4 className={`text-xs font-bold leading-tight font-sans truncate ${isNightMode ? 'text-white' : 'text-slate-900'}`}>
                           {item.title}
                         </h4>
                         <p className="text-[10px] text-slate-400 leading-snug line-clamp-2 mt-1 font-sans">
@@ -1556,6 +1727,72 @@ export default function App() {
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Row 6: Interactive Simulators Panel (Full Width) */}
+          <div className={`lg:col-span-12 p-5 rounded-2xl border transition-all ${
+            isNightMode ? "bg-[#091224]/80 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"
+          }`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-850 pb-3 mb-4 gap-2">
+              <div className="space-y-0.5 text-left">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
+                  Interactive Controls
+                </span>
+                <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
+                  ห้องปฏิบัติการจำลองสมดุลส่วนกลาง (IoT & Audit Lab)
+                </h3>
+              </div>
+
+              {/* Sub tabs switcher */}
+              <div className="bg-slate-100 dark:bg-slate-850 p-0.5 rounded-xl flex gap-1 text-[10px] font-bold self-start sm:self-auto font-sans border border-slate-200/20">
+                <button 
+                  onClick={() => setActiveSimTab("iot")}
+                  className={`px-4 py-1.5 rounded-lg cursor-pointer transition-all ${activeSimTab === "iot" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-sky-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`}
+                >
+                  IoT สระน้ำ
+                </button>
+                <button 
+                  onClick={() => setActiveSimTab("pdca")}
+                  className={`px-4 py-1.5 rounded-lg cursor-pointer transition-all ${activeSimTab === "pdca" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-sky-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`}
+                >
+                  ISO 9001 PDCA
+                </button>
+                <button 
+                  onClick={() => setActiveSimTab("proposal")}
+                  className={`px-4 py-1.5 rounded-lg cursor-pointer transition-all ${activeSimTab === "proposal" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-sky-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`}
+                >
+                  ประเมินแผนลดงบ
+                </button>
+              </div>
+            </div>
+
+            {/* Render Selected Simulator Component */}
+            <div className="pt-2 text-left">
+              {activeSimTab === "iot" && (
+                <PoolWaterMonitor isNightMode={isNightMode} />
+              )}
+              {activeSimTab === "pdca" && (
+                <PDCAInteractive isNightMode={isNightMode} />
+              )}
+              {activeSimTab === "proposal" && (
+                <ProposalCalculator isNightMode={isNightMode} />
+              )}
+            </div>
+          </div>
+
+          {/* Row 7: Standalone Before/After Renovation Slider (Full Width) */}
+          <div className={`lg:col-span-12 p-5 rounded-2xl border transition-all ${
+            isNightMode ? "bg-[#091224]/80 border-blue-900/30 text-white" : "bg-white border-slate-100 shadow-sm text-slate-800"
+          }`}>
+            <div className="border-b border-slate-100 dark:border-slate-850 pb-3 mb-4 text-left">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
+                Case Studies Renovation
+              </span>
+              <h3 className="text-base font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
+                เปรียบเทียบก่อน-หลัง การปรับปรุงโครงสร้าง (Renovation Before/After)
+              </h3>
+            </div>
+            <BeforeAfterSlider isNightMode={isNightMode} />
           </div>
         </div>
       )}
@@ -1698,13 +1935,22 @@ export default function App() {
 
           {/* Team Members inside About Page */}
           <div className="pt-8">
-            <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+            <div className="text-center max-w-2xl mx-auto mb-10 space-y-2 relative">
               <span className="text-xs font-mono font-bold text-[#D4A017] uppercase tracking-widest block">คณะวิญญูชนร่วมสร้างวินัยอาคาร</span>
               <h3 className={`text-2xl font-black font-sans ${isNightMode ? "text-white" : "text-slate-900"}`}>ทีมวิศวกรระบบและผู้สอบบัญชีตรงสำหรับอาคารคุณ</h3>
+              {isAdminLoggedIn && (
+                <button
+                  onClick={() => setIsAddTeamMemberModalOpen(true)}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold font-sans hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2 mx-auto cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  เพิ่มสมาชิกทีม
+                </button>
+              )}
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              {teamMembers.map((member, index) => (
+              {teamMembersState.map((member: any, index: number) => (
                 <div 
                   key={index} 
                   className={`rounded-xl overflow-hidden hover:scale-[1.01] hover:shadow-2xl transition-all duration-300 flex flex-col justify-between text-left group backdrop-blur-xl border ${
@@ -1724,6 +1970,17 @@ export default function App() {
                       <div className="absolute top-3 right-3 bg-emerald-500 text-white font-mono font-bold text-[9px] px-2 py-0.5 rounded uppercase">
                         Active
                       </div>
+                      {isAdminLoggedIn && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTeamMember(index);
+                          }}
+                          className="absolute top-3 left-3 w-7 h-7 bg-red-500/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center cursor-pointer transition-all z-10 shadow-lg"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                     
                     <div className="p-4 space-y-2">
@@ -2463,7 +2720,7 @@ export default function App() {
                       {selectedPortfolioItem.stats}
                     </span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black tracking-tight font-display text-slate-900 dark:text-white">
+                  <h2 className={`text-xl sm:text-2xl font-black tracking-tight font-display ${isNightMode ? 'text-white' : 'text-slate-900'}`}>
                     {selectedPortfolioItem.title}
                   </h2>
                 </div>
@@ -2482,22 +2739,22 @@ export default function App() {
                       />
                     </div>
                     <div className="space-y-2 font-sans">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">คำอธิบายโครงการ</span>
-                      <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-350">
+                      <span className={`text-[10px] font-bold uppercase tracking-widest block ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>คำอธิบายโครงการ</span>
+                      <p className={`text-xs leading-relaxed ${isNightMode ? 'text-slate-350' : 'text-slate-600'}`}>
                         {selectedPortfolioItem.description}
                       </p>
                     </div>
-                    <div className="p-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 text-xs leading-relaxed text-slate-500 dark:text-slate-400 font-sans">
-                      <span className="font-bold text-slate-900 dark:text-slate-200 block mb-1">ผลงานปฏิบัติการจริง:</span>
+                    <div className={`p-4 rounded-xl border border-dashed text-xs leading-relaxed font-sans ${isNightMode ? 'border-slate-800 bg-slate-900/40 text-slate-400' : 'border-slate-300 bg-slate-100/50 text-slate-700'}`}>
+                      <span className={`font-bold block mb-1 ${isNightMode ? 'text-slate-200' : 'text-slate-900'}`}>ผลงานปฏิบัติการจริง:</span>
                       {selectedPortfolioItem.detail}
                     </div>
                   </div>
 
                   {/* Right Column: Embedded Simulators (7 columns) */}
                   <div className="lg:col-span-7 space-y-4 text-left">
-                    <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-slate-200 mb-3 font-sans flex items-center gap-1.5">
-                        <span className="w-1.5 h-3.5 bg-blue-600 dark:bg-sky-400 rounded-full inline-block"></span>
+                    <div className={`p-4 rounded-2xl border ${isNightMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-300 bg-slate-100/50'}`}>
+                      <h4 className={`text-xs font-bold mb-3 font-sans flex items-center gap-1.5 ${isNightMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                        <span className="w-1.5 h-3.5 bg-blue-600 rounded-full inline-block"></span>
                         <span>ระบบจำลองการตรวจวัดวิเคราะห์ค่าน้ำส่วนกลาง (IoT Pool Monitor)</span>
                       </h4>
                       <PoolWaterMonitor isNightMode={isNightMode} />
@@ -2541,6 +2798,129 @@ export default function App() {
       {/* ADMIN PORTAL & LOGISTICS MODALS */}
       <AdminLoginModal />
       <AddProjectModal />
+      <AddTeamMemberModal />
+
+      {/* Floating Operational Dispatch Chat Button */}
+      <button 
+        onClick={() => setIsChatOpen(!isChatOpen)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white hover:bg-blue-700 transition-all z-50 cursor-pointer shadow-blue-500/30"
+      >
+        {isChatOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        {(!isChatOpen && [
+          { id: "kianna", unread: 2 },
+          { id: "jaydon", unread: 0 },
+          { id: "mira", unread: 1 }
+        ].reduce((sum, p) => sum + p.unread, 0) > 0) && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center border-2 border-white dark:border-slate-900 text-white font-mono">
+            3
+          </span>
+        )}
+      </button>
+
+      {/* Floating Chat Window */}
+      <AnimatePresence>
+        {isChatOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className={`fixed bottom-24 right-6 w-[340px] sm:w-[450px] z-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden border ${isNightMode ? "bg-[#091224]/95 border-blue-900/50 backdrop-blur-xl" : "bg-white/95 border-slate-200 backdrop-blur-xl"}`}
+          >
+            <div className={`p-4 border-b ${isNightMode ? "border-slate-850" : "border-slate-100"}`}>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5 text-left">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-sans">
+                    Operational Dispatch
+                  </span>
+                  <h3 className="text-sm font-extrabold tracking-tight font-sans text-slate-900 dark:text-white">
+                    ระบบประสานงานวิศวกรด่วนเชิงรุก
+                  </h3>
+                </div>
+                <span className="flex items-center gap-1.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-sans">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="hidden sm:inline">ออนไลน์</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex h-[360px]">
+              {/* Chat Partner list: Sidebar */}
+              <div className={`w-[110px] sm:w-[130px] flex-shrink-0 flex flex-col gap-1.5 p-2 overflow-y-auto border-r scrollbar-thin ${isNightMode ? "border-slate-850" : "border-slate-100"}`}>
+                {[
+                  { id: "kianna", name: "Kianna G.", role: "วิศวกร SOP", avatar: "KG", unread: 2 },
+                  { id: "jaydon", name: "Jaydon M.", role: "ผู้ตรวจ Opex", avatar: "JM", unread: 0 },
+                  { id: "mira", name: "Mira M.", role: "ผู้สอบทาน", avatar: "MM", unread: 1 }
+                ].map((p) => (
+                  <button 
+                    key={p.id}
+                    onClick={() => setActiveChatPartner(p.id as any)}
+                    className={`p-2 rounded-xl text-left transition-all flex flex-col items-center justify-center gap-1 cursor-pointer relative ${
+                      activeChatPartner === p.id 
+                        ? "bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-sky-400" 
+                        : "hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold font-sans text-slate-800 dark:text-white">
+                      {p.avatar}
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <span className="text-[10px] font-bold font-sans leading-tight">{p.name}</span>
+                      <span className="text-[8px] text-slate-450 leading-none mt-0.5">{p.role}</span>
+                    </div>
+                    {p.unread > 0 && activeChatPartner !== p.id && (
+                      <span className="absolute top-1 right-1 text-[8px] font-black bg-emerald-500 text-white w-3.5 h-3.5 rounded-full flex items-center justify-center font-mono">
+                        {p.unread}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Chat logs & Input fields: Main Chat */}
+              <div className="flex-1 flex flex-col justify-between p-3 min-w-0 bg-slate-50/50 dark:bg-[#050a14]/50">
+                <div className="flex-1 overflow-y-auto max-h-[260px] space-y-3 mb-3 pr-2 scrollbar-thin">
+                  {(chatMessages[activeChatPartner] || []).map((msg, idx) => (
+                    <div key={idx} className={`flex flex-col max-w-[90%] ${msg.sender === "user" ? "ml-auto items-end" : "mr-auto items-start"}`}>
+                      <div className={`p-2.5 rounded-2xl text-xs font-medium leading-relaxed shadow-sm text-left ${
+                        msg.sender === "user" 
+                          ? "bg-blue-600 text-white rounded-tr-none" 
+                          : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-200/50 dark:border-slate-700"
+                      }`}>
+                        {msg.text}
+                      </div>
+                      <span className="text-[8px] text-slate-400 mt-1 font-mono">{msg.timestamp}</span>
+                    </div>
+                  ))}
+                  {isChatTyping && (
+                    <div className="flex items-center gap-1.5 mr-auto p-2.5 bg-white dark:bg-slate-800 rounded-2xl rounded-tl-none w-14 border border-slate-200/50 dark:border-slate-700">
+                      <span className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 mt-auto">
+                  <input 
+                    type="text"
+                    value={chatInputText}
+                    onChange={(e) => setChatInputText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+                    placeholder="พิมพ์ตอบกลับ..."
+                    className="flex-1 px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none text-slate-900 dark:text-white focus:ring-1 focus:ring-blue-600 dark:focus:ring-sky-500 placeholder-slate-400 font-sans shadow-sm"
+                  />
+                  <button 
+                    onClick={handleSendChatMessage}
+                    className="bg-blue-600 dark:bg-sky-500 text-white p-2 rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5 text-white" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
